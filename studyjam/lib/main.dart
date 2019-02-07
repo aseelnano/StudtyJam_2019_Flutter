@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:english_words/english_words.dart';
+
 import 'second.dart';
 
 void main() => runApp(new MyApp());
@@ -14,14 +15,57 @@ class MyApp extends StatelessWidget {
   }
 }
 
+
+
 class RandomWords extends StatefulWidget {
   @override
   RandomWordsState createState() => new RandomWordsState();
 }
 
+  final Set<WordPair> _saved = new Set<WordPair>();  
+
 class RandomWordsState extends State<RandomWords> {
   final List<WordPair> _suggestions = <WordPair>[];
+
+ 
+
   final TextStyle _biggerFont = const TextStyle(fontSize: 18.0);
+
+
+
+void _pushSaved() {
+  Navigator.of(context).push(
+    new MaterialPageRoute<void>(
+      builder: (BuildContext context) {
+        final Iterable<ListTile> tiles = _saved.map(
+          (WordPair pair) {
+            return new ListTile(
+              title: new Text(
+                pair.asPascalCase,
+                style: _biggerFont,
+              ),
+            );
+          },
+        );
+        final List<Widget> divided = ListTile
+          .divideTiles(
+            context: context,
+            tiles: tiles,
+          )
+              .toList();
+
+        return new Scaffold(         // Add 6 lines from here...
+          appBar: new AppBar(
+            backgroundColor: Colors.purple,
+            title: const Text('Saved Suggestions'),
+          ),
+          body: new ListView(children: divided),
+        );                           // ... to here.
+      },
+    ),
+  );
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -29,6 +73,9 @@ class RandomWordsState extends State<RandomWords> {
       appBar: new AppBar(
         title: const Text('Hello world'),
         backgroundColor: Colors.purple,
+          actions: <Widget>[      // Add 3 lines from here...
+          new IconButton(icon: const Icon(Icons.list), onPressed: _pushSaved),
+        ], 
       ),
       body: _buildSuggestions(),
     );
@@ -50,15 +97,32 @@ class RandomWordsState extends State<RandomWords> {
   }
 
   Widget _buildRow(WordPair pair) {
+      final alreadySaved = _saved.contains(pair);
+
     return new ListTile(
       title: new Text(
         pair.asPascalCase,
         style: _biggerFont,
       ),
-      trailing: Icon(Icons.favorite_border),
-      onTap: (){
-        Navigator.push(context, MaterialPageRoute(builder: (context) => Second('${pair}')));
-      },
+      trailing: Icon(
+        alreadySaved ? Icons.favorite : Icons.favorite_border,
+      color: alreadySaved ? Colors.red : null,),
+
+      // onTap: (){
+      
+      
+      // //  Navigator.push(context, MaterialPageRoute(builder: (context) => Second('${pair}')));
+      // },
+
+        onTap: () {      // Add 9 lines from here...
+      setState(() {
+        if (alreadySaved) {
+          _saved.remove(pair);
+        } else { 
+          _saved.add(pair); 
+        } 
+      });
+    },  
     );
   }
 }
